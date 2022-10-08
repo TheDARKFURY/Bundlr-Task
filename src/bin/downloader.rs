@@ -40,9 +40,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let s2 = response.strip_suffix("}").unwrap();
     let v: Vec<&str> = s2.split(",").collect();
     let chunck: Vec<&str> = v[1].split(":").collect();
+    let size:Vec<&str> = v[0].split(":").collect();
+    let size2: u64 = (&size[1][1..size[1].len() - 1]).trim().parse().unwrap();
+    // println!("{:?}", v);
+    print!("{}", size2);
     let chunck_data = &chunck[1][1..chunck[1].len() - 1];
-
-    println!("chunk_data:{}", chunck_data);
+    let chunk_int:u64 = chunck_data.trim().parse().unwrap();
+    // println!("chunk_data:{}", chunck_data);
     let mut url2: String = "https://arweave.net/chunk/".to_string();
     url2.push_str(chunck_data);
 
@@ -60,5 +64,55 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // file.write_all(response2.as_bytes())
     //     .expect("Something got wrong");
     // println!("{:}", test);
+
+    let mut chunk_data = String::new();
+    let s1 = response2.strip_prefix("{").unwrap();
+    let s2 = response2.strip_suffix("}").unwrap();
+    let concatenate_chunk: Vec<&str> = response2.split(",").collect();
+    let a = concatenate_chunk[3];
+    let b: Vec<&str> = a.split(":").collect();
+    let temp1= b[1].strip_prefix('"').unwrap();
+    // println!("{}", temp1);
+    let temp2 = temp1.strip_suffix("}").unwrap();
+    // print!("{}", temp2);
+    let temp2 = temp2.strip_suffix('"').unwrap();
+    chunk_data.push_str(temp2);
+    // println!("{:?}", chunk_data);
+    // let mut file2 = File::create("./Result.txt")?;
+    // file2.write_all(chunk_data.as_bytes())
+    // .expect("Something got wrong");
+
+    // println!("{}", chunk_data);
+    // let chunk_int:u64 = chunk_data.trim().parse().unwrap();
+    let chunk_data2 = chunk_int - size2 + 1;
+    let chunk_data3 = chunk_data2.to_string();
+    let mut url3: String = "https://arweave.net/chunk/".to_string();
+    url3.push_str(chunk_data3.as_str());
+    let response3 = client
+        .get(url3)
+        .header("Accept", "text/plain")
+        .timeout(Duration::from_secs(3))
+        .send()
+        .await?
+        .text()
+        .await?;
+
+        let mut chunk_data2 = String::new();
+        let s1 = response3.strip_prefix("{").unwrap();
+        let s2 = response3.strip_suffix("}").unwrap();
+        let concatenate_chunk: Vec<&str> = response3.split(",").collect();
+        let a = concatenate_chunk[3];
+        let b: Vec<&str> = a.split(":").collect();
+        let temp1= b[1].strip_prefix('"').unwrap();
+        // println!("{}", temp1);
+        let temp2 = temp1.strip_suffix("}").unwrap();
+        // print!("{}", temp2);
+        let temp2 = temp2.strip_suffix('"').unwrap();
+        chunk_data2.push_str(temp2);
+        // println!("{:?}", chunk_data);
+        let mut file2 = File::create("./Result.txt")?;
+        file2.write_all(chunk_data2.as_bytes())
+        .expect("Something got wrong");
+    
     Ok(())
 }
